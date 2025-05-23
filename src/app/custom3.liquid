@@ -1,0 +1,476 @@
+{% schema %}
+{
+  "name": "Location-based Products",
+  "settings": [
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Select Collection"
+    },
+    {
+      "type": "text",
+      "id": "distance_unit",
+      "label": "Distance Unit",
+      "default": "km",
+      "info": "Enter 'km' for kilometers or 'mi' for miles"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Location-based Products",
+      "category": "Collection"
+    }
+  ]
+}
+{% endschema %}
+
+<div class="location-based-products" id="locationProducts">
+  <button id="locationButton" class="location-button hidden">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+    </svg>
+    Enable Location Access
+  </button>
+  <div class="products-container" id="productsContainer">
+    <div class="products-grid" id="productsGrid"></div>
+  </div>
+</div>
+
+<style>
+.location-based-products {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.products-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.product-card {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.2s;
+}
+
+.product-card:hover {
+  background-color: #f5f5f5;
+}
+
+.product-image {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-right: 20px;
+}
+
+.product-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.product-details {
+  flex: 1;
+}
+
+.product-title {
+  margin: 0 0 5px 0;
+  font-size: 18px;
+}
+
+.product-price {
+  margin: 0;
+  color: #666;
+}
+
+.distance-badge {
+  background: #008060;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-left: 20px;
+}
+
+.location-button {
+  background-color: #008060;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.location-button:hover {
+  background-color: #006e52;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.location-button:disabled {
+  background-color: #e0e0e0;
+  color: #666;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.location-button.hidden {
+  display: none;
+}
+
+.location-button svg {
+  width: 20px;
+  height: 20px;
+}
+</style>
+
+<script>
+let userLocation = null;
+const products = [];
+let locationAvailable = false;
+
+// Function to extract coordinates from variants
+function extractCoordinates(variants) {
+  try {
+    if (!variants || variants.length < 5) {
+      console.warn('Not enough variants for coordinates:', variants?.length || 0);
+      return { lat: 0, lng: 0 };
+    }
+    
+    // Get the 4th and 5th variants (index 3 and 4)
+    const latVariant = variants[3];
+    const lngVariant = variants[4];
+    
+    // Extract numbers from variant titles
+    const lat = parseFloat(latVariant.title);
+    const lng = parseFloat(lngVariant.title);
+    
+    if (isNaN(lat) || isNaN(lng)) {
+      console.warn('Invalid coordinates in variants:', { latVariant, lngVariant });
+      return { lat: 0, lng: 0 };
+    }
+    
+    console.log('Extracted coordinates:', { lat, lng, fromVariants: [latVariant.title, lngVariant.title] });
+    return { lat, lng };
+  } catch (e) {
+    console.error('Error extracting coordinates from variants:', e);
+    return { lat: 0, lng: 0 };
+  }
+}
+
+// Function to calculate distance between two coordinates using Haversine formula
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const distance = R * c;
+  return distance;
+}
+
+// Function to format distance
+function formatDistance(distance, unit) {
+  // Convert to meters if less than 1 km
+  if (distance < 1) {
+    const meters = Math.round(distance * 1000); // Convert km to meters
+    return `${meters} m`;
+  }
+  
+  // For distances >= 1 km
+  if (unit === 'mi') {
+    distance = distance * 0.621371; // Convert km to miles
+    return `${distance.toFixed(1)} mi`;
+  }
+  return `${distance.toFixed(1)} km`;
+}
+
+// Function to get variant price range
+function getVariantPriceRange(variants) {
+  if (!variants || variants.length < 2) return '';
+  
+  // Get the first two variants for price range
+  const price1 = parseInt(variants[0].title);
+  const price2 = parseInt(variants[1].title);
+  
+  if (isNaN(price1) || isNaN(price2)) {
+    console.warn('Invalid price range in variants:', variants.slice(0, 2));
+    return '';
+  }
+  
+  // If both prices are the same, show it once
+  if (price1 === price2) {
+    return `${price1} ft`;
+  }
+  
+  // Show the range
+  return `${price1} ft - ${price2} ft`;
+}
+
+// Function to handle successful location retrieval
+function handleLocationSuccess(position) {
+  try {
+    userLocation = {
+      lat: position.coords.latitude,
+      lng: position.coords.longitude
+    };
+    locationAvailable = true;
+    const locationButton = document.getElementById('locationButton');
+    locationButton.classList.add('hidden');
+    console.log(`User location: Latitude ${userLocation.lat}, Longitude ${userLocation.lng}`);
+    sortAndDisplayProducts();
+    
+    // Store the permission state
+    try {
+      localStorage.setItem('locationPermission', 'granted');
+    } catch (e) {
+      console.warn('Could not store permission state:', e);
+    }
+  } catch (e) {
+    console.error('Error handling location:', e);
+    locationAvailable = false;
+    showLocationButton();
+    sortAndDisplayProducts();
+  }
+}
+
+// Function to handle location errors
+function handleLocationError(error) {
+  let errorMessage = '';
+  switch (error.code) {
+    case error.PERMISSION_DENIED:
+      errorMessage = "Location access denied";
+      // Store the denied state
+      try {
+        localStorage.setItem('locationPermission', 'denied');
+      } catch (e) {
+        console.warn('Could not store permission state:', e);
+      }
+      break;
+    case error.POSITION_UNAVAILABLE:
+      errorMessage = "Location information unavailable";
+      break;
+    case error.TIMEOUT:
+      errorMessage = "Location request timed out";
+      break;
+    default:
+      errorMessage = "Unable to get location";
+      break;
+  }
+  console.log(errorMessage);
+  locationAvailable = false;
+  showLocationButton();
+  sortAndDisplayProducts();
+}
+
+// Function to show location button
+function showLocationButton() {
+  const locationButton = document.getElementById('locationButton');
+  locationButton.classList.remove('hidden');
+  locationButton.disabled = false;
+  locationButton.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+    </svg>
+    Enable Location Access
+  `;
+}
+
+// Function to request location
+function requestLocation() {
+  if (navigator.geolocation) {
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 5000,
+      maximumAge: 0
+    };
+
+    // Force a new permission request by using getCurrentPosition
+    navigator.geolocation.getCurrentPosition(
+      handleLocationSuccess,
+      handleLocationError,
+      options
+    );
+  } else {
+    console.log("Geolocation is not supported");
+    locationAvailable = false;
+    showLocationButton();
+    sortAndDisplayProducts();
+  }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+  const locationButton = document.getElementById('locationButton');
+  handleLocationSuccess()
+  
+  // Check if geolocation is supported
+  if (navigator.geolocation) {
+    // Check permission status
+    navigator.permissions.query({ name: 'geolocation' }).then(function(permissionStatus) {
+      console.log('Permission status:', permissionStatus.state);
+      
+      // Listen for permission changes
+      permissionStatus.addEventListener('change', function() {
+        console.log('Permission status changed to:', permissionStatus.state);
+        if (permissionStatus.state === 'granted') {
+          locationButton.classList.add('hidden');
+          requestLocation();
+        } else {
+          showLocationButton();
+        }
+      });
+
+      // Handle initial permission state
+      if (permissionStatus.state === 'granted') {
+        // If we already have permission, get location immediately
+        locationButton.classList.add('hidden');
+        requestLocation();
+      } else {
+        // If we don't have permission, show the button
+        showLocationButton();
+      }
+    }).catch(function(error) {
+      console.error('Error checking permission status:', error);
+      showLocationButton();
+    });
+    
+    // Add click handler for location button
+    locationButton.addEventListener('click', function() {
+      // Prevent multiple clicks
+      if (locationButton.disabled) return;
+      
+      locationButton.disabled = true;
+      locationButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+        </svg>
+        Getting Location...
+      `;
+      
+      // Request location
+      requestLocation();
+    });
+  } else {
+    locationButton.textContent = 'Location Not Supported';
+    locationButton.disabled = true;
+  }
+  
+  // Initial load
+  try {
+    sessionStorage.getItem('test');
+  } catch (e) {
+    console.warn('Sandbox restriction detected:', e);
+    locationAvailable = false;
+    showLocationButton();
+  }
+  sortAndDisplayProducts();
+});
+
+// Function to sort and display products
+function sortAndDisplayProducts() {
+  try {
+    const productsGrid = document.getElementById('productsGrid');
+    const unit = {{ section.settings.distance_unit | json }};
+    
+    // Clear existing products array
+    products.length = 0;
+    
+    // Get all products from the collection
+    {% for product in collections[section.settings.collection].products %}
+      products.push({
+        id: {{ product.id | json }},
+        title: {{ product.title | json }},
+        image: {{ product.featured_image | img_url: 'medium' | json }},
+        url: {{ product.url | json }},
+        variants: {{ product.variants | json }},
+        getCoordinates: function() {
+          return extractCoordinates(this.variants);
+        },
+        getPriceRange: function() {
+          return getVariantPriceRange(this.variants);
+        }
+      });
+    {% endfor %}
+
+    // Extract coordinates for all products
+    products.forEach(product => {
+      const coords = product.getCoordinates();
+      product.lat = coords.lat;
+      product.lng = coords.lng;
+    });
+
+    // Sort products based on location availability
+    if (locationAvailable && userLocation) {
+      try {
+        products.sort((a, b) => {
+          const distanceA = calculateDistance(userLocation.lat, userLocation.lng, a.lat, a.lng);
+          const distanceB = calculateDistance(userLocation.lat, userLocation.lng, b.lat, b.lng);
+          return distanceA - distanceB;
+        });
+      } catch (e) {
+        console.error('Error sorting by distance:', e);
+        products.sort((a, b) => a.title.localeCompare(b.title));
+      }
+    } else {
+      products.sort((a, b) => a.title.localeCompare(b.title));
+    }
+
+    // Display sorted products
+    productsGrid.innerHTML = products.map(product => {
+      let distanceBadge = '';
+      if (locationAvailable && userLocation) {
+        try {
+          const distance = calculateDistance(userLocation.lat, userLocation.lng, product.lat, product.lng);
+          distanceBadge = `<span class="distance-badge">${formatDistance(distance, unit)}</span>`;
+        } catch (e) {
+          console.error('Error calculating distance:', e);
+        }
+      }
+      
+      const priceRange = product.getPriceRange();
+      
+      return `
+        <a href="${product.url}" class="product-card">
+          <img src="${product.image}" alt="${product.title}" class="product-image">
+          <div class="product-info">
+            <div class="product-details">
+              <h3 class="product-title">${product.title}</h3>
+              ${priceRange ? `<p class="product-price">${priceRange}</p>` : ''}
+            </div>
+            ${distanceBadge}
+          </div>
+        </a>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error('Error displaying products:', e);
+    const productsGrid = document.getElementById('productsGrid');
+    if (productsGrid) {
+      productsGrid.innerHTML = '<p>Unable to display products. Please refresh the page.</p>';
+    }
+  }
+}
+</script>

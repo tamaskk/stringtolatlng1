@@ -1,103 +1,113 @@
-import Image from "next/image";
+"use client";
+import { useRef, useEffect, useState } from "react";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
+import { ClipboardIcon } from "@heroicons/react/24/outline";
+
+const MAPBOX_TOKEN = "pk.eyJ1Ijoia2FsbWFudG9taWthIiwiYSI6ImNtMzNiY3pvdDEwZDIya3I2NWwxanJ6cXIifQ.kiSWtgrH6X-l0TpquCKiXA";
+mapboxgl.accessToken = MAPBOX_TOKEN;
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const [query, setQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<{ place_name: string; center: [number, number] }[]>([]);
+  const [selected, setSelected] = useState<{ place_name: string; center: [number, number] } | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    if (query.trim() === "") {
+      setSuggestions([]);
+      return;
+    }
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${MAPBOX_TOKEN}&limit=5`;
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+         if (data.features) {
+            setSuggestions(data.features.map((f: any) => ({ place_name: f.place_name, center: f.center })));
+         } else {
+            setSuggestions([]);
+         }
+      })
+      .catch (err => { console.error("Geocoding error:", err); setSuggestions([]); });
+  }, [query]);
+
+  useEffect(() => {
+    if (!mapContainerRef.current || !selected) return;
+    if (mapRef.current) {
+      mapRef.current.remove();
+    }
+    const [lng, lat] = selected.center;
+    mapRef.current = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      center: [lng, lat],
+      zoom: 14,
+      style: "mapbox://styles/mapbox/streets-v11",
+    });
+    new mapboxgl.Marker().setLngLat([lng, lat]).addTo(mapRef.current);
+    return () => { mapRef.current?.remove(); };
+  }, [selected]);
+
+  const handleCopy = (value: string, type: "lat" | "lng") => {
+    navigator.clipboard.writeText(value);
+    setCopied(type);
+    setTimeout(() => setCopied(null), 1200);
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 p-4 gap-8">
+      <div className="w-full max-w-md flex flex-col gap-4">
+        <label className="font-semibold text-lg text-gray-800 dark:text-gray-100">Keresés helyszínre</label>
+        <div className="relative">
+          <input
+            type="text"
+            className="w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
+            placeholder="Írjon a kereséshez…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            autoComplete="off"
+          />
+          {query && suggestions.length > 0 && (
+            <ul className="absolute z-10 w-full bg-white dark:bg-gray-800 border rounded-lg mt-1 max-h-48 overflow-auto shadow-lg">
+              {suggestions.map((s, i) => (
+                <li
+                  key={i}
+                  className="px-4 py-2 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900"
+                  onClick={() => { setSelected(s); setQuery(""); }}
+                >
+                  {s.place_name}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        {selected && (
+          <div className="flex gap-2 mt-2">
+            <button
+              className="flex items-center p-4 gap 1 px 4 py 2 bg-blue 600 text white rounded hover bg blue 700 transition text-lg border border-white"
+              onClick={() => handleCopy(selected.center[1].toString(), "lat")}
+            >
+              <ClipboardIcon className="w-5 h-5" />
+              Szélesség: {selected.center[1].toFixed(6)}
+            </button>
+            <button
+              className="flex p-4 items center gap 1 px 4 py 2 bg-blue 600 text white rounded hover bg blue 700 transition text-lg border border-white"
+              onClick={() => handleCopy(selected.center[0].toString(), "lng")}
+            >
+              <ClipboardIcon className="w-5 h-5" />
+              Hosszúság: {selected.center[0].toFixed(6)}
+            </button>
+            {copied && (
+              <span className="ml-2 text green 600 dark text green 400 font medium animate pulse">Másolva {copied}!</span>
+            )}
+          </div>
+        )}
+      </div>
+      <div
+        ref={mapContainerRef}
+        className="w-full max-w-2xl h-[400px] rounded-lg shadow-lg border border-gray-200 overflow-hidden"
+      />
     </div>
   );
 }

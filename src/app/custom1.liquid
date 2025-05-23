@@ -1,0 +1,56 @@
+{% schema %}
+{
+  "name": "Product Name List",
+  "settings": [
+    {
+      "type": "collection",
+      "id": "selected_collection",
+      "label": "Select Collection"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product Name List",
+      "category": "Collection"
+    }
+  ]
+}
+{% endschema %}
+
+<div class="product-name-list">
+  {% if section.settings.selected_collection != blank %}
+    {% assign collection = collections[section.settings.selected_collection] %}
+    {% if collection.products.size > 0 %}
+      <ul class="product-names">
+        {% for product in collection.products %}
+          <li class="product-name">{{ product.title }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No products found in this collection.</p>
+    {% endif %}
+  {% else %}
+    <p>Please select a collection in the theme settings.</p>
+  {% endif %}
+</div>
+
+<style>
+  .product-name-list {
+    padding: 20px;
+  }
+  
+  .product-names {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .product-name {
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .product-name:last-child {
+    border-bottom: none;
+  }
+</style>

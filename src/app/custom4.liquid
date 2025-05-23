@@ -1,0 +1,110 @@
+{% schema %}
+{
+  "name": "Product Display",
+  "settings": [
+    {
+      "type": "text",
+      "id": "distance_unit",
+      "label": "Distance Unit",
+      "default": "km",
+      "info": "Enter 'km' for kilometers or 'mi' for miles"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product Display",
+      "category": "Product"
+    }
+  ]
+}
+{% endschema %}
+
+{% comment %} Using Tailwind CSS via CDN for styling {% endcomment %}
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+{% comment %} Main product section {% endcomment %}
+<section class="container mx-auto px-4 py-8">
+  {% comment %} Product title centered at the top {% endcomment %}
+  <h1 class="text-3xl md:text-4xl font-bold text-center mb-8">{{ product.title }}</h1>
+
+  {% comment %} Product images in a horizontal row {% endcomment %}
+  <div class="flex flex-wrap justify-center gap-4 mb-8">
+    {% for image in product.images %}
+      <img 
+        src="{{ image.src | img_url: 'medium' }}" 
+        alt="{{ product.title }} image {{ forloop.index }}"
+        class="w-24 h-24 md:w-32 md:h-32 object-cover cursor-pointer rounded-lg hover:opacity-80 transition-opacity"
+        onclick="openModal('{{ image.src | img_url: 'large' }}', '{{ product.title | escape }}')"
+      >
+    {% endfor %}
+  </div>
+
+  {% comment %} Display phone number from third variant option {% endcomment %}
+  {% if product.options.size >= 3 %}
+    {% assign phone_number = product.options[2] %}
+    <div class="text-center mb-8">
+      <p class="text-lg font-semibold">Contact Phone: 
+        {% for variant in product.variants %}
+          {% if forloop.first %}
+            {{ variant.option3 }}
+          {% endif %}
+        {% endfor %}
+      </p>
+    </div>
+  {% else %}
+    <p class="text-center text-red-500">Phone number variant not available.</p>
+  {% endif %}
+
+  {% comment %} Product description {% endcomment %}
+  <div class="max-w-2xl mx-auto">
+    <div class="prose prose-sm md:prose-lg mb-6">
+      {{ product.description }}
+    </div>
+  </div>
+</section>
+
+{% comment %} Modal for image popup {% endcomment %}
+<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+  <div class="bg-white p-4 rounded-lg max-w-3xl w-full">
+    <div class="flex justify-end">
+      <button onclick="closeModal()" class="text-gray-600 hover:text-gray-800">&times;</button>
+    </div>
+    <img id="modalImage" src="" alt="" class="w-full h-auto max-h-[80vh] object-contain">
+  </div>
+</div>
+
+{% comment %} JavaScript for modal functionality {% endcomment %}
+<script>
+function openModal(imageSrc, altText) {
+  const modal = document.getElementById('imageModal');
+  const modalImage = document.getElementById('modalImage');
+  modalImage.src = imageSrc;
+  modalImage.alt = altText;
+  modal.classList.remove('hidden');
+}
+
+function closeModal() {
+  const modal = document.getElementById('imageModal');
+  modal.classList.add('hidden');
+}
+
+// Close modal when clicking outside the image
+document.getElementById('imageModal').addEventListener('click', function(event) {
+  if (event.target === this) {
+    closeModal();
+  }
+});
+</script>
+
+{% comment %} Responsive styles {% endcomment %}
+<style>
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  h1 {
+    font-size: 1.5rem;
+  }
+}
+</style>
