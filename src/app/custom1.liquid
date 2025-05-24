@@ -1,56 +1,458 @@
 {% schema %}
 {
-  "name": "Product Name List",
+  "name": "Video Hero",
   "settings": [
     {
+      "type": "text",
+      "id": "video_id",
+      "label": "YouTube Video ID",
+      "default": "2CXIbMIWQbY"
+    },
+    {
+      "type": "text",
+      "id": "sos_text",
+      "label": "SOS Text",
+      "default": "SOS"
+    },
+    {
+      "type": "text",
+      "id": "beauty_text",
+      "label": "Beauty Text",
+      "default": "BEAUTY"
+    },
+    {
+      "type": "text",
+      "id": "sub_text",
+      "label": "Sub Text",
+      "default": "Discover More"
+    },
+    {
+      "type": "text",
+      "id": "sub_text2",
+      "label": "Second Sub Text",
+      "default": "Explore Now"
+    },
+    {
+      "type": "image_picker",
+      "id": "button1_image",
+      "label": "Button 1 Image"
+    },
+    {
+      "type": "text",
+      "id": "button1",
+      "label": "Button1 Text",
+      "default": "SOS"
+    },
+    {
+      "type": "image_picker",
+      "id": "button2_image",
+      "label": "Button 2 Image"
+    },
+    {
+      "type": "text",
+      "id": "button2",
+      "label": "Button2 Text",
+      "default": "SOS"
+    },
+    {
+      "type": "image_picker",
+      "id": "button3_image",
+      "label": "Button 3 Image"
+    },
+    {
+      "type": "text",
+      "id": "button3",
+      "label": "Button3 Text",
+      "default": "SOS"
+    },
+    {
+      "type": "image_picker",
+      "id": "button4_image",
+      "label": "Button 4 Image"
+    },
+    {
+      "type": "text",
+      "id": "button4",
+      "label": "Button4 Text",
+      "default": "SOS"
+    },
+    {
+      "type": "image_picker",
+      "id": "button5_image",
+      "label": "Button 5 Image"
+    },
+    {
+      "type": "text",
+      "id": "button5",
+      "label": "Button5 Text",
+      "default": "SOS"
+    },
+    {
+      "type": "image_picker",
+      "id": "button6_image",
+      "label": "Button 6 Image"
+    },
+    {
+      "type": "text",
+      "id": "button6",
+      "label": "Button6 Text",
+      "default": "SOS"
+    },
+    {
+      "type": "image_picker",
+      "id": "button7_image",
+      "label": "Button 7 Image"
+    },
+    {
+      "type": "text",
+      "id": "button7",
+      "label": "Button7 Text",
+      "default": "SOS"
+    },
+    {
+      "type": "image_picker",
+      "id": "button8_image",
+      "label": "Button 8 Image"
+    },
+    {
+      "type": "text",
+      "id": "button8",
+      "label": "Button8 Text",
+      "default": "SOS"
+    },
+    {
+      "type": "image_picker",
+      "id": "button9_image",
+      "label": "Button 9 Image"
+    },
+    {
+      "type": "text",
+      "id": "button9",
+      "label": "Button9 Text",
+      "default": "SOS"
+    },
+    {
+      "type": "image_picker",
+      "id": "button10_image",
+      "label": "Button 10 Image"
+    },
+    {
+      "type": "text",
+      "id": "button10",
+      "label": "Button10 Text",
+      "default": "SOS"
+    },
+    {
       "type": "collection",
-      "id": "selected_collection",
-      "label": "Select Collection"
+      "id": "button1_collection",
+      "label": "Button 1 Collection"
+    },
+    {
+      "type": "collection",
+      "id": "button2_collection",
+      "label": "Button 2 Collection"
+    },
+    {
+      "type": "collection",
+      "id": "button3_collection",
+      "label": "Button 3 Collection"
+    },
+    {
+      "type": "collection",
+      "id": "button4_collection",
+      "label": "Button 4 Collection"
+    },
+    {
+      "type": "collection",
+      "id": "button5_collection",
+      "label": "Button 5 Collection"
+    },
+    {
+      "type": "collection",
+      "id": "button6_collection",
+      "label": "Button 6 Collection"
+    },
+    {
+      "type": "collection",
+      "id": "button7_collection",
+      "label": "Button 7 Collection"
+    },
+    {
+      "type": "collection",
+      "id": "button8_collection",
+      "label": "Button 8 Collection"
+    },
+    {
+      "type": "collection",
+      "id": "button9_collection",
+      "label": "Button 9 Collection"
+    },
+    {
+      "type": "collection",
+      "id": "button10_collection",
+      "label": "Button 10 Collection"
     }
   ],
   "presets": [
     {
-      "name": "Product Name List",
-      "category": "Collection"
+      "name": "Video Hero"
     }
   ]
 }
 {% endschema %}
 
-<div class="product-name-list">
-  {% if section.settings.selected_collection != blank %}
-    {% assign collection = collections[section.settings.selected_collection] %}
-    {% if collection.products.size > 0 %}
-      <ul class="product-names">
-        {% for product in collection.products %}
-          <li class="product-name">{{ product.title }}</li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>No products found in this collection.</p>
-    {% endif %}
-  {% else %}
-    <p>Please select a collection in the theme settings.</p>
-  {% endif %}
-</div>
-
 <style>
-  .product-name-list {
-    padding: 20px;
+  :root {
+    --nav-height: 60px; /* Adjust this value to match your navigation bar height */
   }
-  
-  .product-names {
-    list-style: none;
-    padding: 0;
+
+  .video-hero {
+    position: relative;
+    min-height: 110vh;
+    width: 100%;
+    overflow: hidden;
+  }
+  .video-hero__iframe {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 100vw;
+    min-height: 130vh;
+    width: auto;
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+  .video-hero__overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 1;
+  }
+  .video-hero__content {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: calc(4rem + var(--nav-height)) 1rem 4rem; /* Added nav-height to top padding */
+    color: #fff;
+    z-index: 1;
+    gap: 1rem;
+    min-height: 100%;
+  }
+  .sos-text, .beauty-text {
+    font-size: 18rem;
+    font-weight: 900;
+    background: linear-gradient(45deg, #ff6b6b, #ff8e8e, #ff6b6b);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 20px rgba(255, 107, 107, 0.8), 0 0 40px rgba(255, 107, 107, 0.6), 0 0 60px rgba(255, 107, 107, 0.4);
+    animation: glowPulse 2s ease-in-out infinite;
     margin: 0;
   }
-  
-  .product-name {
-    padding: 10px 0;
-    border-bottom: 1px solid #eee;
+  .sub-text, .sub-text2 {
+    font-size: 2rem;
+    font-weight: 400;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    margin: 0;
   }
-  
-  .product-name:last-child {
-    border-bottom: none;
+  @media (max-width: 768px) {
+    .video-hero {
+      min-height: 130vh;
+    }
+    .video-hero__iframe {
+      min-height: 160vh;
+    }
+    .sos-text, .beauty-text {
+      font-size: 8rem;
+    }
+    .sub-text, .sub-text2 {
+      font-size: 1.5rem;
+    }
+  }
+  .button-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    width: 100%;
+    max-width: 600px;
+    margin: 2rem 0;
+  }
+  @media (min-width: 768px) {
+    .button-grid {
+      grid-template-columns: repeat(5, 1fr);
+      max-width: 1000px;
+    }
+  }
+  .grid-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    gap: 0.5rem;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  @media (min-width: 768px) {
+    .grid-button {
+      padding: 1.25rem;
+      font-size: 1.4rem;
+    }
+    .grid-button img {
+      max-height: 120px;
+    }
+  }
+  .grid-button span {
+    display: block;
+  }
+  .grid-button img {
+    width: 100%;
+    max-height: 80px;
+    object-fit: contain;
+    border-radius: 0.25rem;
+  }
+  .grid-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+  }
+  @keyframes glowPulse {
+    0% {
+      text-shadow: 0 0 20px rgba(255, 107, 107, 0.8), 0 0 40px rgba(255, 107, 107, 0.6), 0 0 60px rgba(255, 107, 107, 0.4);
+      background-position: 0% 50%;
+    }
+    50% {
+      text-shadow: 0 0 30px rgba(255, 107, 107, 1), 0 0 50px rgba(255, 107, 107, 0.8), 0 0 70px rgba(255, 107, 107, 0.6);
+      background-position: 100% 50%;
+    }
+    100% {
+      text-shadow: 0 0 20px rgba(255, 107, 107, 0.8), 0 0 40px rgba(255, 107, 107, 0.6), 0 0 60px rgba(255, 107, 107, 0.4);
+      background-position: 0% 50%;
+    }
   }
 </style>
+
+<section class="video-hero">
+  <iframe
+    class="video-hero__iframe"
+    src="https://www.youtube.com/embed/{{ section.settings.video_id }}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&playlist={{ section.settings.video_id }}&modestbranding=1"
+    title="YouTube video background"
+    frameborder="0"
+    allow="autoplay; encrypted-media"
+    allowfullscreen
+  ></iframe>
+  <div class="video-hero__overlay"></div>
+  <div class="video-hero__content">
+    <h1 class="sos-text">{{ section.settings.sos_text | escape }}</h1>
+    <h1 class="beauty-text">{{ section.settings.beauty_text | escape }}</h1>
+    <p class="sub-text">{{ section.settings.sub_text | escape }}</p>
+    <p class="sub-text2">{{ section.settings.sub_text2 | escape }}</p>
+    <div class="button-grid">
+      <a href="{{ section.settings.button1_collection.url }}" class="grid-button">
+        <span>{{ section.settings.button1 }}</span>
+        {% if section.settings.button1_image %}
+          <img src="{{ section.settings.button1_image | img_url: 'master' }}" alt="{{ section.settings.button1 | escape }}">
+        {% endif %}
+      </a>
+      <a href="{{ section.settings.button2_collection.url }}" class="grid-button">
+        <span>{{ section.settings.button2 }}</span>
+        {% if section.settings.button2_image %}
+          <img src="{{ section.settings.button2_image | img_url: 'master' }}" alt="{{ section.settings.button2 | escape }}">
+        {% endif %}
+      </a>
+      <a href="{{ section.settings.button3_collection.url }}" class="grid-button">
+        <span>{{ section.settings.button3 }}</span>
+        {% if section.settings.button3_image %}
+          <img src="{{ section.settings.button3_image | img_url: 'master' }}" alt="{{ section.settings.button3 | escape }}">
+        {% endif %}
+      </a>
+      <a href="{{ section.settings.button4_collection.url }}" class="grid-button">
+        <span>{{ section.settings.button4 }}</span>
+        {% if section.settings.button4_image %}
+          <img src="{{ section.settings.button4_image | img_url: 'master' }}" alt="{{ section.settings.button4 | escape }}">
+        {% endif %}
+      </a>
+      <a href="{{ section.settings.button5_collection.url }}" class="grid-button">
+        <span>{{ section.settings.button5 }}</span>
+        {% if section.settings.button5_image %}
+          <img src="{{ section.settings.button5_image | img_url: 'master' }}" alt="{{ section.settings.button5 | escape }}">
+        {% endif %}
+      </a>
+      <a href="{{ section.settings.button6_collection.url }}" class="grid-button">
+        <span>{{ section.settings.button6 }}</span>
+        {% if section.settings.button6_image %}
+          <img src="{{ section.settings.button6_image | img_url: 'master' }}" alt="{{ section.settings.button6 | escape }}">
+        {% endif %}
+      </a>
+      <a href="{{ section.settings.button7_collection.url }}" class="grid-button">
+        <span>{{ section.settings.button7 }}</span>
+        {% if section.settings.button7_image %}
+          <img src="{{ section.settings.button7_image | img_url: 'master' }}" alt="{{ section.settings.button7 | escape }}">
+        {% endif %}
+      </a>
+      <a href="{{ section.settings.button8_collection.url }}" class="grid-button">
+        <span>{{ section.settings.button8 }}</span>
+        {% if section.settings.button8_image %}
+          <img src="{{ section.settings.button8_image | img_url: 'master' }}" alt="{{ section.settings.button8 | escape }}">
+        {% endif %}
+      </a>
+      <a href="{{ section.settings.button9_collection.url }}" class="grid-button">
+        <span>{{ section.settings.button9 }}</span>
+        {% if section.settings.button9_image %}
+          <img src="{{ section.settings.button9_image | img_url: 'master' }}" alt="{{ section.settings.button9 | escape }}">
+        {% endif %}
+      </a>
+      <a href="{{ section.settings.button10_collection.url }}" class="grid-button">
+        <span>{{ section.settings.button10 }}</span>
+        {% if section.settings.button10_image %}
+          <img src="{{ section.settings.button10_image | img_url: 'master' }}" alt="{{ section.settings.button10 | escape }}">
+        {% endif %}
+      </a>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        function (position) {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+          console.log(`User location: Latitude ${latitude}, Longitude ${longitude}`);
+        },
+        function (error) {
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              console.log("User denied the request for Geolocation.");
+              break;
+            case error.POSITION_UNAVAILABLE:
+              console.log("Location information is unavailable.");
+              break;
+            case error.TIMEOUT:
+              console.log("The request to get user location timed out.");
+              break;
+            default:
+              console.log("An unknown error occurred.");
+              break;
+          }
+        }
+      );
+    } else {
+      console.log("Geolocation is not supported by this browser.");
+    }
+  });
+</script>

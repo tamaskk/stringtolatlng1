@@ -1,0 +1,15 @@
+{% assign price = product.price %}
+<p id="billing-message">Első hónap ingyenes! Következő számlázás <span id="billing-date"></span>-án lesz {{ price | money_without_currency }} Ft értékben!</p>
+
+<script>
+  // Get current date and add one month
+  const today = new Date('{{ 'now' | date: '%Y-%m-%d' }}');
+  const nextMonth = new Date(today.setMonth(today.getMonth() + 1));
+  
+  // Format date as "Month Day" in Hungarian
+  const options = { month: 'long', day: 'numeric' };
+  const formattedDate = nextMonth.toLocaleDateString('hu-HU', options);
+  
+  // Insert formatted date into the page
+  document.getElementById('billing-date').textContent = formattedDate;
+</script>
