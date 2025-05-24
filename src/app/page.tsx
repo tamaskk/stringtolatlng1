@@ -4,6 +4,12 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { ClipboardIcon } from "@heroicons/react/24/outline";
 
+interface MapboxFeature {
+  place_name: string;
+  center: [number, number];
+  // Add other properties if needed
+}
+
 const MAPBOX_TOKEN = "pk.eyJ1Ijoia2FsbWFudG9taWthIiwiYSI6ImNtMzNiY3pvdDEwZDIya3I2NWwxanJ6cXIifQ.kiSWtgrH6X-l0TpquCKiXA";
 mapboxgl.accessToken = MAPBOX_TOKEN;
 
@@ -25,7 +31,7 @@ export default function Home() {
       .then((res) => res.json())
       .then((data) => {
          if (data.features) {
-            setSuggestions(data.features.map((f: any) => ({ place_name: f.place_name, center: f.center })));
+            setSuggestions(data.features.map((f: MapboxFeature) => ({ place_name: f.place_name, center: f.center })));
          } else {
             setSuggestions([]);
          }
